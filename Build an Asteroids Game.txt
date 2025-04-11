@@ -1,0 +1,238 @@
+Build an Asteroids Game
+
+Setup:
+
+We're going to build a simple video game, based on the classic Asteroids. If you've never played before, you can take a look at this (slightly different from our) version of the game.
+
+The finished project
+
+Prerequisites
+Python 3.10+ installed (see the bookbot project for help if you don't already have it)
+Access to a unix-like shell (e.g. zsh or bash)
+Learning Goals
+The learning goals of this project are:
+
+Introduce you to multi-file Python projects
+Show you a real-world use case for object-oriented programming
+To have a ton of fun building a rewarding project!
+The goal is not to teach game development or the math required for physics simulations. As a result, there are some places where you will simply copy-paste code that we wrote for you. Don't worry about trying to understand every detail if it's not interesting to you, you will be asked to write the parts that matter most.
+
+Assignment
+To get started, make sure you have the Boot.dev CLI installed and working.
+
+Run and submit the tests using the CLI.
+
+The tests just ensure that the CLI is installed and configured correctly.
+
+Installation
+We are going to be using pygame and a virtual environment to develop our game.
+
+Pygame
+Pygame is a module for developing games using Python. It provides simple functions and methods for us to easily draw images within a GUI window and handle user input.
+
+Virtual Environment (venv)
+Virtual environments are Python's way to keep dependencies (e.g. the pygame module) separate from other projects on our machine. For example, we need pygame version 2 for this project, but another project on your computer might require version 1.
+
+As a best practice, each Python project on your machine should have its own virtual environment to keep them isolated from each other.
+
+Assignment
+Create a new directory and Git repository for this project somewhere on your computer.
+Create a virtual environment at the top level of your project directory:
+python3 -m venv venv
+
+Activate the virtual environment:
+source venv/bin/activate
+
+You should see (venv) at the beginning of your terminal prompt, for example, mine is:
+
+(venv) wagslane@MacBook-Pro-2 Asteroids %
+
+Make sure that your virtual environment is activated when running the game or using the bootdev CLI.
+
+Create a file called requirements.txt in the top level of your project directory with the following contents:
+pygame==2.6.1
+
+This tells Python that this project requires pygame version 2.6.1.
+
+Install the requirements:
+pip install -r requirements.txt
+
+pip is Python's package manager. It will install the pygame module into the virtual environment you created.
+
+Make sure pygame is installed:
+python3 -m pygame
+
+This will result in an error (the test expects an exit code of 1), but the output will show that pygame is installed.
+
+Run and submit the CLI tests.
+
+If you are on WSL, you will probably need to install VcXsrv to run pygame. Follow the installation and configuration instructions on the linked site. If you need help at any point, ask in the community Discord.
+
+Pygame
+Now that we have pygame installed, let's write just a bit of boilerplate code so that we have a runnable program to build on.
+
+Assignment
+Create a new file called main.py.
+On the first line, import pygame:
+# this allows us to use code from
+# the open-source pygame library
+# throughout this file
+import pygame
+
+Write a main function that simply prints "Starting Asteroids!" (use this exact text).
+Add this if statement to the end of the file:
+if __name__ == "__main__":
+    main()
+
+This line ensures the main() function is only called when this file is run directly; it won't run if it's imported as a module. It's considered the "pythonic" way to structure an executable program in Python. Technically, the program will work fine by just calling main(), but you might get an angry letter from Guido van Rossum if you don't.
+
+Run the program with python3 main.py
+Run and submit using the Boot.dev CLI.
+
+Modules
+It would be a massive pain if we had to fit all of our code into a single file.
+
+Importing
+In Python, each .py file is a module, and we can import functions, variables, and classes from one module into another with the import statement. The name of a module is the filename (without the .py extension).
+
+# import the connect_database function
+# and the database_version variable
+# from database.py into the current file
+from database import connect_database, database_version
+
+If you want to import everything from a module, you can use the * character:
+
+# import everything from the module
+# database.py into the current file
+from database import *
+
+However, it's generally recommended to avoid wildcard imports (*) as they make your code harder to read and debug. You can read more about this in the Python style guide.
+
+Constants
+Games often have a lot of magic numbers to represent things like player speeds, item costs, and attack damage. We will use this file as a place to store those kind of constant values.
+
+Assignment
+Create a new file in your project called constants.py (in the same folder as main.py), and paste this in:
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+
+ASTEROID_MIN_RADIUS = 20
+ASTEROID_KINDS = 3
+ASTEROID_SPAWN_RATE = 0.8  # seconds
+ASTEROID_MAX_RADIUS = ASTEROID_MIN_RADIUS * ASTEROID_KINDS
+
+Import everything from the constants.py file into main.py
+Print out the SCREEN_WIDTH and SCREEN_HEIGHT values when main.py is run. Use the following format:
+Along with a greeting from importing pygame, the expected output is the following:
+
+Starting Asteroids!
+Screen width: 1280
+Screen height: 720
+
+Game Loop
+Video games are generally built using a game loop. The simplest game loop has 3 steps:
+
+Check for player inputs
+Update the game world
+Draw the game to the screen
+To create a good user experience, these 3 steps need to happen many times per second.
+
+Assignment
+import pygame at the top of your main.py file. The pygame documentation will be super useful throughout this project.
+Initialize pygame at the beginning of your main() function (take a look at the docs for the syntax).
+Ensure our predefined constants (constants.py) SCREEN_WIDTH and SCREEN_HEIGHT are imported at the top of your file:
+from constants import *
+
+Because this is a smaller project, and we don't risk conflicting import names, we're going to use a wildcard import for convenience. In a larger project, you'd want to import only the constants you need.
+
+Use pygame's display.set_mode() to get a new GUI window:
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
+Create the game loop. For now, we'll only worry about step 3: drawing the game onto the screen.
+Use an infinite while loop for the game loop. At each iteration, it should:
+Use the screen's fill method to fill the screen with a solid "black" color.
+Use pygame's display.flip() method to refresh the screen. Be sure to call this last!
+It's a good idea to run and test your game frequently as you write code , to make sure it's working as expected:
+If you're on a mac, wait until step 8 before doing this.
+python3 main.py
+
+You should see a black window open and stay open.
+
+Close the game and kill the program with Ctrl+C in the terminal.
+Add the following code to the beginning of each iteration of the game loop:
+for event in pygame.event.get():
+    if event.type == pygame.QUIT:
+        return
+
+This will check if the user has closed the window and exit the game loop if they do. It will make the window's close button work.
+
+Create a .gitignore file and add the following:
+venv/
+__pycache__/
+
+These files can be regenerated, so they don't need to be tracked.
+
+Make a git commit! It's a good idea to commit your progress whenever you get something new working.
+With the window painting black and closing properly, you're ready to move on to the next step!
+
+FPS
+Right now, our game is re-drawing the screen as fast as it possibly can. This causes it to use a lot more CPU than it actually needs!
+
+Delta Time
+In math, the Greek letter delta (Δ) is often used to represent a change in a value. In game development, we use "delta time" to represent the amount of time that has passed since the last frame was drawn. This value is useful to decouple the game's speed from the speed it's being drawn to the screen.
+
+If your computer speeds up, the asteroids shouldn't also speed up. Conversely, if your computer slows down, the asteroids shouldn't also slow down: they would just move less smoothly.
+
+Assignment
+FPS stands for frames per second. We're going to restrict our game to draw a maximum of 60 times per second, or 60 FPS.
+
+After initializing pygame, but before the gameloop starts, create:
+A new pygame.time.Clock object.
+A dt variable set to 0.
+At the end of each iteration of the game loop, call the .tick() method, and pass it 60. It will pause the game loop until 1/60th of a second has passed.
+The .tick() method also returns the amount of time that has passed since the last time it was called: the delta time. Divide the return value by 1000 (to convert from milliseconds to seconds) and save it into the dt variable we created earlier. We're not using dt yet, but we will later.
+Re-run the game. You should still see the same black screen, but this time it should use less of your system's resources!
+If everything is still working as you'd expect, move on to the next step.
+
+Sprites
+Throughout this project, we will provide some of the code for you, like the class below. We want you to focus on specific parts and have pre-written the stuff that isn't related to the concepts we're trying to teach.
+
+In pygame, there is a base class called Sprite, to represent visual objects.
+
+Assignment
+In our game, asteroids are visually represented as circles, and the player is a triangle. However, detecting collisions between circles and triangles is hard. To avoid this problem, we can cheat a little bit: the player will secretly be a circle.
+
+The player is secretly a circle.The red circle won't be visible in the game; only we need to know it exists.
+
+Let's create a CircleShape class that inherits from Sprite to represent objects in our game that are treated as circles (even if they aren't).
+
+Create a new circleshape.py file and paste in the following code:
+
+import pygame
+
+# Base class for game objects
+class CircleShape(pygame.sprite.Sprite):
+    def __init__(self, x, y, radius):
+        # we will be using this later
+        if hasattr(self, "containers"):
+            super().__init__(self.containers)
+        else:
+            super().__init__()
+
+        self.position = pygame.Vector2(x, y)
+        self.velocity = pygame.Vector2(0, 0)
+        self.radius = radius
+
+    def draw(self, screen):
+        # sub-classes must override
+        pass
+
+    def update(self, dt):
+        # sub-classes must override
+        pass
+
+CircleShape extends the Sprite class to also store a position, velocity, and radius.
+
+Later you'll write subclasses of CircleShape and override the draw and update methods with the logic for that particular game object.
+
+Run the CLI tests from the root of the project.
