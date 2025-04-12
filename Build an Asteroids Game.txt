@@ -236,3 +236,228 @@ CircleShape extends the Sprite class to also store a position, velocity, and rad
 Later you'll write subclasses of CircleShape and override the draw and update methods with the logic for that particular game object.
 
 Run the CLI tests from the root of the project.
+
+Draw Player
+Let's draw a spaceship for the player!
+
+Assignment
+Add this line to constants.py to define the size of the player's ship:
+PLAYER_RADIUS = 20
+
+Create a new file called player.py with a Player class that inherits from CircleShape.
+
+The Player constructor should take x and y integers as input, then:
+
+Call the parent class's constructor, also passing in PLAYER_RADIUS
+Create a field called rotation, initialized to 0
+Paste this triangle method into your Player class:
+
+# in the player class
+def triangle(self):
+    forward = pygame.Vector2(0, 1).rotate(self.rotation)
+    right = pygame.Vector2(0, 1).rotate(self.rotation + 90) * self.radius / 1.5
+    a = self.position + forward * self.radius
+    b = self.position - forward * self.radius - right
+    c = self.position - forward * self.radius + right
+    return [a, b, c]
+
+A player will look like a triangle, even though we'll use a circle to represent its hitbox. The math of drawing a triangle can be a bit fiddly, so we've written the method for you.
+
+To draw the player, override the draw method of CircleShape. It should take the screen object as a parameter, and call pygame.draw.polygon. It takes:
+The screen object
+A color (use "white")
+A list of points (use self.triangle() that we provided for you)
+A line width (use 2)
+In your main function, instantiate a Player object. You can pass these values to the constructor to spawn it in the middle of the screen:
+x = SCREEN_WIDTH / 2
+y = SCREEN_HEIGHT / 2
+Lastly, we need to re-render the player on the screen each frame, meaning inside our game loop. Use the player.draw(screen) method we just added to do so.
+Run the game. If everything worked, you should see a black screen with a white triangle in the middle. Progress!
+
+Tip
+Draw the player after filling the screen with black, but before flipping the screen.
+
+Moving Around
+We want the spaceship to be able to move; but what does that mean specifically? Let's break it down:
+
+If we press the move-left key, the ship should rotate to the left.
+If we press the move-right key, the ship should rotate to the right.
+If we press the move-forward key, the ship should move forward.
+If we press the move-backward key, the ship should move backward.
+Left and right seem pretty similar. Let's try to write a small function to tackle those first!
+
+Assignment
+Create a new constant in constants.py to represent the player's turn speed. I named mine PLAYER_TURN_SPEED, and gave it a value of 300.
+Add a new method to the Player class called rotate. It's going to take one argument: dt (I told you we'd use it!). When it's called, it should add PLAYER_TURN_SPEED * dt to the player's current rotation.
+Paste in the following update method to the Player class:
+    def update(self, dt):
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_a]:
+            # ?
+        if keys[pygame.K_d]:
+            # ?
+
+If you're using a non-QWERTY keyboard, you may want to change the keybindings in the code to something other than the W, A, S and D keys.
+
+Update the missing lines to call the rotate method with the dt argument. To go left instead of right when a is pressed, you'll need to reverse dt... how can you do that...?
+Hook the update method into the game loop by calling it on the player object each frame before rendering.
+Run the game and make sure the a and d keys rotate the player left and right respectively.
+
+Moving
+Now instead of rotating, we need the ship to move back and forth with the W and S keys.
+
+Assignment
+Create a new constant in constants.py to represent the player speed. I named mine PLAYER_SPEED, and gave it a value of 200.
+Add a new method to the Player class called .move(). It takes one argument: dt. We want to modify the player's position; but first, we need to do a little bit of math.
+We start with a unit vector pointing straight up from (0, 0) to (0, 1).
+We rotate that vector by the player's rotation, so it's pointing in the direction the player is facing.
+We multiply by PLAYER_SPEED * dt. A larger vector means faster movement.
+Add the vector to our position to move the player.
+Vector Math
+
+This is a course on programming, not vector math, so we've done the math for you. All those words boil down to these two lines of code:
+
+forward = pygame.Vector2(0, 1).rotate(self.rotation)
+self.position += forward * PLAYER_SPEED * dt
+
+Modify the update method in the Player class to call the move method when the W or S keys are pressed.
+Run the game. You should now be able to fly around the screen with the W, A, S, and D keys!
+
+Groups
+Currently, we manually call .update() and .draw() on the player object, which means our game loop is going to get more and more cluttered as we add additional objects to the game. Fortunately, pygame has a solution!
+
+The Group class is a container that holds and manages multiple game objects. We can organize our objects into various groups to track them more easily.
+
+You can think of them as a sort of Venn diagram. An object can be in multiple groups at the same time! Eventually, our game's groups will look something like this:
+
+Venn-diagram of the groups we will eventually have
+
+Creating and Using Groups
+You can create a new empty group like this:
+
+my_group = pygame.sprite.Group()
+
+To add all instances of a Player to two groups, group_a and group_b in this example, we add a class variable (or static field) called containers to the class just like so (with literally this one line, you don't need to bother with adding this field to the class declaration):
+
+Player.containers = (group_a, group_b)
+
+After changing a static field like containers, make sure to create all Player objects after the change. This way, they will be correctly added to the groups.
+
+You can iterate over objects in a group just like any other collection in Python:
+
+for thing in group:
+    thing.do_something(some_value)
+
+You may also call the .update() method for every member of a group by calling it on the group itself:
+
+group.update(dt)
+
+Assignment
+Before the game loop starts:
+
+Create two groups in main.py:
+updatable - all the objects that can be updated
+drawable - all the objects that can be drawn
+Set both groups as containers for the Player.
+Change the game loop to use the new groups instead of the Player object directly.
+Call the .update() method on the "updatables" group.
+Loop over all "drawables" and .draw() them individually.
+Run the game. It should look and behave the same as before, but now we're using groups to manage our objects.
+
+******** NOTE *********
+ok, could you explain a bit more about why setting the class variable is set in the main.py file with the single line rather than in the class with having the groups passed in?
+
+Boots
+That's a fantastic question!
+
+The approach of setting the class variable containers directly in main.py rather than within the Player class definition follows a particular design philosophy in pygame's sprite system:
+
+Separation of concerns: By setting the containers in main.py, the Player class itself doesn't need to know which specific groups it belongs to. This keeps the Player class focused on player behavior, not group management.
+
+Flexibility across different scenarios: The same Player class can be used in different contexts (like menus, different levels, testing) where it might need to belong to different groups. By setting the containers outside the class, you don't hard-code this relationship.
+
+Runtime configuration: You might want to change which groups a sprite belongs to during the game. Setting the containers externally makes this easier to manage.
+
+Pygame's design pattern: This is specifically how pygame's Sprite system was designed to work. The Sprite class constructor automatically adds itself to all groups in its class's containers attribute when instantiated.
+
+Think of it like this: The Player class defines what a player is and how it behaves. The code in main.py decides where that player exists in the organizational structure of your game.
+
+This pattern is somewhat unusual compared to standard OOP practices, but it's an effective way to handle the complex relationships between game objects in pygame's sprite system.
+
+*************************
+
+Asteroids
+It's arguable that a critical part of Asteroids is the... well, asteroids. Let's create another class to represent an asteroid.
+
+Assignment
+Create a new class called Asteroid in a new file called asteroid.py. The class should inherit from CircleShape
+Add a constructor with this signature:
+def __init__(self, x, y, radius):
+
+Override the draw() method to draw the asteroid as a pygame.draw.circle. Use its position, radius, and a width of 2
+Override the update() method so that it moves in a straight line at constant speed. On each frame, it should add (self.velocity * dt) to its position (get self.velocity from its parent class, CircleShape).
+In the initialization code in main (before the game loop starts), create a new pygame.sprite.Group which will contain all of the asteroids.
+Like we did with the Player class, set the static containers field of the Asteroid class to the new asteroids group, as well as the updatable and drawable groups.
+Asteroid.containers = (asteroids, updatable, drawable)
+
+This ensures that every instance of the Asteroid class is automatically added to these groups upon creation.
+
+We've written an AsteroidField class for you: it contains logic for spawning new asteroids. Create a new file called asteroidfield.py, and import it in your main.py file. Paste in this code:
+import pygame
+import random
+from asteroid import Asteroid
+from constants import *
+
+
+class AsteroidField(pygame.sprite.Sprite):
+    edges = [
+        [
+            pygame.Vector2(1, 0),
+            lambda y: pygame.Vector2(-ASTEROID_MAX_RADIUS, y * SCREEN_HEIGHT),
+        ],
+        [
+            pygame.Vector2(-1, 0),
+            lambda y: pygame.Vector2(
+                SCREEN_WIDTH + ASTEROID_MAX_RADIUS, y * SCREEN_HEIGHT
+            ),
+        ],
+        [
+            pygame.Vector2(0, 1),
+            lambda x: pygame.Vector2(x * SCREEN_WIDTH, -ASTEROID_MAX_RADIUS),
+        ],
+        [
+            pygame.Vector2(0, -1),
+            lambda x: pygame.Vector2(
+                x * SCREEN_WIDTH, SCREEN_HEIGHT + ASTEROID_MAX_RADIUS
+            ),
+        ],
+    ]
+
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self, self.containers)
+        self.spawn_timer = 0.0
+
+    def spawn(self, radius, position, velocity):
+        asteroid = Asteroid(position.x, position.y, radius)
+        asteroid.velocity = velocity
+
+    def update(self, dt):
+        self.spawn_timer += dt
+        if self.spawn_timer > ASTEROID_SPAWN_RATE:
+            self.spawn_timer = 0
+
+            # spawn a new asteroid at a random edge
+            edge = random.choice(self.edges)
+            speed = random.randint(40, 100)
+            velocity = edge[0] * speed
+            velocity = velocity.rotate(random.randint(-30, 30))
+            position = edge[1](random.uniform(0, 1))
+            kind = random.randint(1, ASTEROID_KINDS)
+            self.spawn(ASTEROID_MIN_RADIUS * kind, position, velocity)
+
+In the main.py file, set the static containers field of the AsteroidField class to only the updatable group (it's not drawable, and it's not an asteroid itself).
+Create a new AsteroidField object in the initialization code.
+Run the game and make sure asteroids are spawning and moving across the screen, and that you didn't break your ship in the process.
+
+
