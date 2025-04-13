@@ -460,4 +460,134 @@ In the main.py file, set the static containers field of the AsteroidField class 
 Create a new AsteroidField object in the initialization code.
 Run the game and make sure asteroids are spawning and moving across the screen, and that you didn't break your ship in the process.
 
+Collisions
+You may have noticed that you can fly through asteroids without any consequences.
 
+We need collision detection. Now, this is a fairly deep topic, but we're going to keep things simple: we'll treat everything (including our triangular ship) as a circle when it comes to collisions.
+
+Detecting a collision between two circles is simple:
+
+We calculate the distance between the center of the two circles, let's call it distance
+Let's call the radius of one circle r1, and the radius of the other circle r2
+If distance is less than or equal to r1 + r2, the circles are colliding. If not, they aren't.
+Demonstration of two circles colliding.
+
+Assignment
+Everything that collides inherits from CircleShape, so that seems like a good place to put collision logic.
+
+Add another method to that class to check for collisions. It should take 1 argument (another CircleShape object) and return True or False.
+Each CircleShape's position property is a pygame.Vector2. Use its distance_to method to calculate the distance between the two shapes.
+After the update step in your game loop, iterate over all of the objects in your asteroids group. Check if any of them collide with the player. If a collision is detected, the program should print Game over! and immediately exit the program.
+It's okay for asteroids to simply pass through each other.
+
+Start the game, and run your ship into an asteroid! It should print Game over! to your console and exit.
+
+Shooting
+Let's take things further by giving the player the ability to shoot at the asteroids.
+
+"Oh man. What are you doing with a gun in space?" - Armageddon (1998)
+
+Bullets:
+
+Are small circles
+Move at a constant speed in a straight line
+Split up asteroids when they collide with them
+Are spawned by player input (spacebar) and move in the direction the player is facing
+Assignment
+Create a new Shot class to represent a bullet. It should also inherit from CircleShape so that it can use our collision detection code. It should look very similar to our Asteroid class in that it will be drawn and have its position updated. Use a new SHOT_RADIUS constant and set it to 5.
+Set up a new group in your initialization code that contains all of your shots.
+Add PLAYER_SHOOT_SPEED to your constants file, with a value of 500.
+In your Player class, add a new method called shoot. This method should:
+Create a new shot at the position of the player
+Set the shot's velocity:
+Start with a pygame.Vector2 of (0, 1)
+.rotate() it in the direction the player is facing
+Scale it up (multiply by PLAYER_SHOOT_SPEED) to make it move faster
+Inside your Player class, handle the spacebar (pygame.K_SPACE) and call the shoot method when it is pressed.
+Run your game, make sure bullets are being created and moving in the correct direction.
+
+It's expected that holding the spacebar will create a constant stream of bullets. We'll fix that soon.
+It's expected that bullets pass through asteroids without any consequences. We'll fix that soon.
+
+Rate Limit
+You probably noticed that the weapon on the ship is currently as overpowered as the original Zerg rush. Let's fix that.
+
+Assignment
+Create a new variable on the Player object to act as a timer. It should start with a value of 0
+When the player shoots, set the timer equal to a new constant. I called mine PLAYER_SHOOT_COOLDOWN and used 0.3
+Prevent the player from shooting if the timer is greater than 0
+Decrease the timer by dt every time update is called on the player
+Rerun your game. You should now only be able to shoot every 0.3 seconds.
+
+Bullets should still pass through asteroids without any consequences. We'll fix that soon.
+
+Destruction
+Okay so bullets are flying, but they don't do anything. Let's kill some asteroids!
+
+There are three types of asteroids:
+
+Large
+Medium
+Small
+When a large asteroid is destroyed, it should split into two medium asteroids. When a medium asteroid is destroyed, it should split into two small asteroids. When a small asteroid is destroyed, it should disappear.
+
+For now, we'll just always make the asteroids disappear when they're destroyed. We will handle splitting later.
+
+Assignment
+Add another collision check to the game loop. Loop over each asteroid, and for each asteroid, loop over each bullet. If a bullet and an asteroid collide, call the .kill() method on both objects to remove them from the game.
+The kill() method is a feature built-in to pygame; it will remove the object from all of its groups, so our game will stop drawing and updating it automatically.
+
+Run the game, make sure you can destroy asteroids by shooting them.
+
+Splitting
+In the original game, part of the challenge comes from the fact that larger asteroids split into smaller, faster asteroids when you shoot them. Let's support it!
+
+Instead of calling asteroid.kill() in our game loop, let's call asteroid.split(). This is a new method we'll be writing on the Asteroid class. To start, let's just have the split method call self.kill() like before. This should keep the behavior the same as before, but give us the room to add our splitting logic.
+
+Assignment
+Add a new .split() method to the Asteroid class. It should:
+
+Immediately .kill() itself (think about it: this asteroid is always destroyed, and maybe we'll spawn new ones)
+If the radius of the asteroid is less than or equal to ASTEROID_MIN_RADIUS, just return, this was a small asteroid and we're done
+Otherwise, we need to spawn 2 new asteroids... instructions below
+Spawning New Asteroids
+We want new asteroids to move in new random directions.
+
+Trajectory of new asteroids, after split.The red arrow is our current velocity, and the dotted white arrows are the trajectories of the new asteroids.
+
+Import the random module.
+Use random.uniform to generate a random angle between 20 and 50 degrees. This will be the blue angle on the diagram above.
+Use the rotate method on the asteroid's velocity vector to create 2 new vectors, that are rotated by random_angle and -random_angle respectively (they should split in opposite directions).
+Compute the new radius of the smaller asteroids using the formula old_radius - ASTEROID_MIN_RADIUS
+Create two new Asteroid objects at the current asteroid position with the new radius.
+Set the first's velocity to the first new vector, but make it move faster by scaling it up (multiplying) by 1.2
+Do the same for the second asteroid, but with the second new vector.
+Run the game, and make sure that the following logic works when a bullet hits an asteroid:
+
+Large asteroids split into two medium asteroids
+Medium asteroids split into two small asteroids
+Small asteroids disappear when destroyed
+
+Submit Your Repo!
+You've done it!
+
+Once you're satisfied with your game, push it up to GitHub, then submit the link to your project! Your link should look something like this: https://github.com/github-username/repo-name.
+
+I hope you've enjoyed the project, it's always good to solidify the things you learn in courses by getting your hands dirty with a real project.
+
+Extending the Project
+You've done all the required steps, but if you'd like to make the project your own, here are some ideas:
+
+Add a scoring system
+Implement multiple lives and respawning
+Add an explosion effect for the asteroids
+Add acceleration to the player movement
+Make the objects wrap around the screen instead of disappearing
+Add a background image
+Create different weapon types
+Make the asteroids lumpy instead of perfectly round
+Make the ship have a triangular hit box instead of a circular one
+Add a shield power-up
+Add a speed power-up
+Add bombs that can be dropped
+Have fun with it, and make sure to share any improvements you make with us in the Discord community!
